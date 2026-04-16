@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Sac des Destins</title>
+  <meta name="description" content="Table de jeu de rôle en temps réel — Le Sac des Destins">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/lobby.css">
+</head>
+<body>
+  <main class="lobby-page">
+
+    <!-- Hero -->
+    <header class="lobby-hero">
+      <img src="assets/favicon.svg" alt="Le Sac des Destins" class="lobby-logo">
+      <h1 class="lobby-title">Le Sac des Destins</h1>
+      <p class="lobby-subtitle">Table de jeu de rôle · Tirages synchronisés en temps réel</p>
+    </header>
+
+    <!-- Forms -->
+    <div class="lobby-forms">
+
+      <!-- Créer une session -->
+      <div class="lobby-card" id="create-card">
+        <div class="lobby-card__header">
+          <span class="lobby-card__icon">🎲</span>
+          <div>
+            <div class="lobby-card__title">Créer une session</div>
+            <div class="lobby-card__subtitle">Pour le Meneur de Jeu</div>
+          </div>
+        </div>
+        <form id="create-form" autocomplete="off">
+          <div class="field">
+            <label for="create-session-name">Nom de la session</label>
+            <input type="text" id="create-session-name" placeholder="Ex : Campagne des Brumes" required maxlength="60">
+          </div>
+          <div class="field">
+            <label for="create-gm-name">Votre nom (MJ)</label>
+            <input type="text" id="create-gm-name" placeholder="Ex : Soren" required maxlength="40">
+          </div>
+          <button type="submit" class="btn btn--primary btn--full btn--lg">Créer la session</button>
+        </form>
+      </div>
+
+      <!-- Séparateur -->
+      <div class="lobby-divider" aria-hidden="true">
+        <span>ou</span>
+      </div>
+
+      <!-- Rejoindre une session -->
+      <div class="lobby-card">
+        <div class="lobby-card__header">
+          <span class="lobby-card__icon">🗝</span>
+          <div>
+            <div class="lobby-card__title">Rejoindre</div>
+            <div class="lobby-card__subtitle">Pour les joueurs</div>
+          </div>
+        </div>
+        <form id="join-form" autocomplete="off">
+          <div class="field">
+            <label for="join-code">Code de session</label>
+            <input type="text" id="join-code" placeholder="Ex : DX4-K9M" required maxlength="7"
+              style="font-family:var(--font-mono);font-size:1.1rem;letter-spacing:.15em;text-transform:uppercase">
+          </div>
+          <div class="field">
+            <label for="join-name">Votre nom</label>
+            <input type="text" id="join-name" placeholder="Ex : Lyra" required maxlength="40">
+          </div>
+          <button type="submit" class="btn btn--primary btn--full btn--lg">Rejoindre</button>
+        </form>
+      </div>
+
+    </div><!-- /lobby-forms -->
+
+    <footer class="lobby-footer">
+      <p>Synchronisation temps réel via Firebase · Hébergé sur GitHub Pages · Gratuit &amp; sans inscription</p>
+    </footer>
+
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="js/lobby.js"></script>
+</body>
+</html>

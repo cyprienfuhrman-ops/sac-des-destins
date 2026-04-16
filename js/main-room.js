@@ -142,6 +142,14 @@ function renderAll(data) {
 // FORMULAIRE DE TIRAGE
 // ════════════════════════════════════
 
+const RESULT_LABELS_SHORT = {
+  critical_success: 'Succès Critique',
+  success:          'Succès',
+  failure:          'Échec',
+  critical_failure: 'Échec Critique',
+  auto_failure:     'Échec Auto',
+};
+
 function initDrawForm(prefix) {
   const form = document.getElementById(`${prefix}-draw-form`);
   if (!form) return;
@@ -186,6 +194,9 @@ function initDrawForm(prefix) {
       mods[idx].value = e.target.value;
       updateScore();
     });
+    row.querySelector('.mod-lbl')?.addEventListener('input', (e) => {
+      mods[idx].label = e.target.value;
+    });
     row.querySelector('.mod-remove')?.addEventListener('click', () => {
       mods.splice(idx, 1);
       row.remove();
@@ -226,14 +237,6 @@ function initDrawForm(prefix) {
     }
   });
 }
-
-const RESULT_LABELS_SHORT = {
-  critical_success: 'Succès Critique',
-  success:          'Succès',
-  failure:          'Échec',
-  critical_failure: 'Échec Critique',
-  auto_failure:     'Échec Auto',
-};
 
 // ════════════════════════════════════
 // SELECT PERSONNAGES

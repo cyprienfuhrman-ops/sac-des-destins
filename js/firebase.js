@@ -1,8 +1,9 @@
 // ===== firebase.js — Initialisation Firebase =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
-  getFirestore,
-  enableIndexedDbPersistence
+  initializeFirestore,
+  persistentLocalCache,
+  memoryLocalCache,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
   getAuth,
@@ -12,14 +13,18 @@ import {
 import { firebaseConfig } from '../firebase-config.js';
 
 // ── Init ──
-const app  = initializeApp(firebaseConfig);
-export const db   = getFirestore(app);
-export const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
 
-// Persistence offline légère (best-effort)
-enableIndexedDbPersistence(db).catch(() => {
-  // Ignoré silencieusement — navigation privée ou onglets multiples
-});
+// Persistence locale (best-effort — désactivée en navigation privée ou multi-onglets)
+let db;
+try {
+  db = initializeFirestore(app, { localCache: persistentLocalCache() });
+} catch {
+  db = initializeFirestore(app, { localCache: memoryLocalCache() });
+}
+export { db };
+
+export const auth = getAuth(app);
 
 // ── Auth anonyme ──
 let currentUser = null;

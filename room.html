@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session — Le Sac des Destins</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/room.css">
+</head>
+<body>
+
+  <!-- ════════════════════════════════
+       ZONE A — HEADER
+  ════════════════════════════════ -->
+  <header class="room-header">
+    <span class="room-header__logo">⬡</span>
+    <span class="room-header__name" id="header-session-name">Chargement…</span>
+    <span class="room-code-badge" id="header-room-code" title="Cliquer pour copier le code">———</span>
+    <span id="role-badge" class="badge"></span>
+
+    <div class="room-header__presence" id="presence-list" aria-label="Joueurs connectés"></div>
+
+    <div class="room-header__conn">
+      <span class="conn-dot" id="conn-dot"></span>
+      <span id="conn-text">Connexion…</span>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════
+       MAIN LAYOUT
+  ════════════════════════════════ -->
+  <main class="room-main">
+
+    <!-- ── Colonne principale ── -->
+    <div class="room-col--main">
+
+      <!-- ══════════════════════════
+           ZONE B — SAC JOUEURS
+      ══════════════════════════ -->
+      <section class="bag-panel panel" aria-label="Sac Joueurs">
+        <h2 class="section-title">
+          <span class="section-title__icon">🎒</span>
+          Sac des Joueurs
+        </h2>
+
+        <!-- État du sac -->
+        <div class="bag-status">
+          <div class="bag-count">
+            <div class="bag-count__number mono" id="player-bag-count">100</div>
+            <div class="bag-count__label">jetons restants</div>
+            <div class="bag-count__label" style="margin-top:.25rem">sur <span id="player-bag-total">100</span></div>
+          </div>
+
+          <div class="bag-gauges">
+            <!-- Barre de jetons -->
+            <div>
+              <div class="bag-tension-label">
+                <span>Jetons restants</span>
+                <span class="mono" id="player-bag-count-pct"></span>
+              </div>
+              <div class="bag-bar">
+                <div class="bag-bar__fill" id="player-bag-fill" style="width:100%;background:#4a7c59"></div>
+              </div>
+            </div>
+
+            <!-- Barre de tension -->
+            <div>
+              <div class="bag-tension-label">
+                <span>Tension</span>
+              </div>
+              <div class="tension-bar">
+                <div class="tension-bar__fill" id="player-tension-fill" style="width:0%;background:#4a7c59"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jetons rouges -->
+          <div class="red-tokens-indicator">
+            <div class="red-token-dots" id="player-red-dots">
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+            </div>
+            <span class="text-muted" style="font-size:.78rem">
+              Rouges tirés : <strong class="mono" id="player-red-drawn-count">0</strong>/5
+            </span>
+          </div>
+        </div>
+
+        <!-- Formulaire de tirage -->
+        <form id="player-draw-form" class="draw-form" autocomplete="off">
+          <div class="draw-form__row">
+            <div class="field">
+              <label for="player-actor-name">Personnage</label>
+              <select class="player-char-select actor-name-input" id="player-actor-name">
+                <option value="">— Choisir —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="player-skill-name">Compétence testée</label>
+              <input type="text" class="skill-name-input" id="player-skill-name" placeholder="Ex : Combat, Persuasion…">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="player-skill-score">Score de compétence (1–99)</label>
+            <input type="number" class="skill-score-input" id="player-skill-score" min="1" max="99" value="50" required>
+          </div>
+
+          <!-- Modificateurs -->
+          <div class="modifiers-area" id="player-mods-area">
+            <button type="button" class="btn btn--ghost btn--sm btn-add-mod">+ Modificateur situationnel</button>
+          </div>
+
+          <!-- Score effectif -->
+          <div class="draw-form__score">
+            <div>
+              <div class="score-label">Score effectif</div>
+              <div class="score-effective" id="player-effective-score">50</div>
+            </div>
+            <div style="flex:1;padding-left:.75rem;font-size:.78rem;color:var(--text-dim)">
+              Succès critique ≤ <strong class="mono" id="player-crit-thresh">25</strong><br>
+              Échec critique &gt; <strong class="mono" id="player-fail-thresh">75</strong>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full btn--lg" style="margin-top:.5rem">
+            Tirer un jeton
+          </button>
+        </form>
+
+        <!-- Résultat -->
+        <div id="player-draw-result" class="draw-result draw-result--empty" aria-live="polite">
+          <p class="draw-result--empty">Aucun tirage pour l'instant…</p>
+        </div>
+
+        <!-- Contrôles MJ -->
+        <div class="gm-controls gm-only">
+          <div class="gm-controls__label">Contrôles MJ — Sac Joueurs</div>
+          <button class="btn btn--danger btn--sm" id="reset-player-bag-btn">Réinitialiser le sac</button>
+          <button class="btn btn--ghost btn--sm" id="player-inject-btn">Injecter jeton MJ →</button>
+          <span class="inject-count" id="player-inject-count-label">0/3</span>
+        </div>
+
+        <!-- Historique joueurs -->
+        <div style="margin-top:1rem">
+          <button class="collapsible__toggle" aria-expanded="false">
+            <span>Historique des tirages</span>
+            <span class="collapsible__icon">▼</span>
+          </button>
+          <div class="collapsible__body collapsible__body--closed" style="padding-top:.75rem">
+            <ul class="history-list" id="player-history" aria-label="Historique tirages joueurs"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════
+           ZONE C — SAC MJ (gm-only)
+      ══════════════════════════ -->
+      <section class="bag-panel panel gm-only" aria-label="Sac MJ">
+        <h2 class="section-title">
+          <span class="section-title__icon">🗡</span>
+          Sac du MJ
+          <span class="badge badge--gold" style="margin-left:.5rem">MJ seul</span>
+        </h2>
+
+        <div class="bag-status">
+          <div class="bag-count">
+            <div class="bag-count__number mono" id="gm-bag-count">100</div>
+            <div class="bag-count__label">jetons restants</div>
+          </div>
+
+          <div class="bag-gauges">
+            <div>
+              <div class="bag-tension-label"><span>Jetons restants</span></div>
+              <div class="bag-bar">
+                <div class="bag-bar__fill" id="gm-bag-fill" style="width:100%;background:#4a7c59"></div>
+              </div>
+            </div>
+            <div>
+              <div class="bag-tension-label"><span>Tension</span></div>
+              <div class="tension-bar">
+                <div class="tension-bar__fill" id="gm-tension-fill" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="red-tokens-indicator">
+            <div class="red-token-dots" id="gm-red-dots">
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+              <div class="red-dot"></div>
+            </div>
+            <span class="text-muted" style="font-size:.78rem">
+              Rouges : <strong class="mono" id="gm-red-drawn-count">0</strong>/5
+            </span>
+          </div>
+        </div>
+
+        <form id="gm-draw-form" class="draw-form" autocomplete="off">
+          <div class="draw-form__row">
+            <div class="field">
+              <label for="gm-actor-name">PNJ / Acteur</label>
+              <input type="text" class="actor-name-input" id="gm-actor-name" placeholder="Nom du PNJ">
+            </div>
+            <div class="field">
+              <label for="gm-skill-name">Compétence</label>
+              <input type="text" class="skill-name-input" id="gm-skill-name" placeholder="Ex : Vigilance">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="gm-skill-score">Score (1–99)</label>
+            <input type="number" class="skill-score-input" id="gm-skill-score" min="1" max="99" value="50" required>
+          </div>
+
+          <div class="modifiers-area" id="gm-mods-area">
+            <button type="button" class="btn btn--ghost btn--sm btn-add-mod">+ Modificateur</button>
+          </div>
+
+          <div class="draw-form__score">
+            <div>
+              <div class="score-label">Score effectif</div>
+              <div class="score-effective" id="gm-effective-score">50</div>
+            </div>
+            <div style="flex:1;padding-left:.75rem;font-size:.78rem;color:var(--text-dim)">
+              Succès critique ≤ <strong class="mono" id="gm-crit-thresh">25</strong><br>
+              Échec critique &gt; <strong class="mono" id="gm-fail-thresh">75</strong>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full" style="margin-top:.5rem">Tirer (sac MJ)</button>
+        </form>
+
+        <div id="gm-draw-result" class="draw-result draw-result--empty">
+          <p class="draw-result--empty">Aucun tirage MJ…</p>
+        </div>
+
+        <div class="gm-controls" style="margin-top:.75rem">
+          <div class="gm-controls__label">Contrôles MJ — Sac MJ</div>
+          <button class="btn btn--danger btn--sm" id="reset-gm-bag-btn">Réinitialiser sac MJ</button>
+        </div>
+
+        <div style="margin-top:1rem">
+          <button class="collapsible__toggle" aria-expanded="false">
+            <span>Historique MJ</span>
+            <span class="collapsible__icon">▼</span>
+          </button>
+          <div class="collapsible__body collapsible__body--closed" style="padding-top:.75rem">
+            <ul class="history-list" id="gm-history"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════
+           ZONE G — SCÈNE EN COURS
+      ══════════════════════════ -->
+      <section class="scene-panel panel" aria-label="Scène en cours">
+        <h2 class="section-title">
+          <span class="section-title__icon">📜</span>
+          Scène en cours
+        </h2>
+
+        <!-- Vue joueur (lecture seule) -->
+        <p class="scene-text" id="scene-text">(Aucune scène définie)</p>
+
+        <!-- Vue MJ (input) -->
+        <div class="scene-input-wrap gm-only">
+          <label for="scene-input" class="sr-only">Décrire la scène</label>
+          <textarea class="scene-input" id="scene-input" placeholder="Décrivez la scène courante — visible par tous les joueurs…" rows="3"></textarea>
+          <p style="font-size:.72rem;color:var(--text-dim);margin-top:.3rem">Sauvegarde automatique · Changer la scène réinitialise le compteur d'injections</p>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════
+           ZONE H — RÉFÉRENCE
+      ══════════════════════════ -->
+      <section class="ref-panel panel" aria-label="Référence rapide">
+        <button class="collapsible__toggle" aria-expanded="false">
+          <span>📖 Référence rapide</span>
+          <span class="collapsible__icon">▼</span>
+        </button>
+
+        <div class="collapsible__body collapsible__body--closed">
+          <div style="padding-top:1rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem">
+
+            <!-- Résolution des tirages -->
+            <div class="ref-section">
+              <div class="ref-section-title">Résolution</div>
+              <table class="ref-table">
+                <thead><tr><th>Condition</th><th>Résultat</th></tr></thead>
+                <tbody>
+                  <tr><td>Jeton ≤ Score ÷ 2</td><td style="color:var(--gold)">Succès Critique</td></tr>
+                  <tr><td>Jeton ≤ Score</td><td style="color:var(--green-light)">Succès</td></tr>
+                  <tr><td>Jeton &gt; Score</td><td style="color:var(--text-muted)">Échec</td></tr>
+                  <tr><td>Jeton &gt; 100 – Score÷2</td><td style="color:var(--red-light)">Échec Critique</td></tr>
+                  <tr><td>Jeton = 100</td><td style="color:var(--red-light)">Échec Automatique</td></tr>
+                  <tr><td>Jeton rouge tiré</td><td style="color:var(--red-light)">Conséquence narrative</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Difficultés fixes -->
+            <div class="ref-section">
+              <div class="ref-section-title">Difficultés fixes</div>
+              <table class="ref-table">
+                <thead><tr><th>Niveau</th><th>Score seuil</th></tr></thead>
+                <tbody>
+                  <tr><td>Trivial</td><td class="mono">80</td></tr>
+                  <tr><td>Facile</td><td class="mono">65</td></tr>
+                  <tr><td>Normal</td><td class="mono">50</td></tr>
+                  <tr><td>Difficile</td><td class="mono">35</td></tr>
+                  <tr><td>Ardu</td><td class="mono">20</td></tr>
+                  <tr><td>Extrême</td><td class="mono">10</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Modificateurs situationnels -->
+            <div class="ref-section">
+              <div class="ref-section-title">Modificateurs courants</div>
+              <table class="ref-table">
+                <thead><tr><th>Situation</th><th>Mod.</th></tr></thead>
+                <tbody>
+                  <tr><td>Avantage notable</td><td class="mono" style="color:var(--green-light)">+20%</td></tr>
+                  <tr><td>Avantage mineur</td><td class="mono" style="color:var(--green-light)">+10%</td></tr>
+                  <tr><td>Désavantage mineur</td><td class="mono" style="color:var(--red-light)">−10%</td></tr>
+                  <tr><td>Désavantage notable</td><td class="mono" style="color:var(--red-light)">−20%</td></tr>
+                  <tr><td>Blessé léger</td><td class="mono" style="color:var(--red-light)">−5%</td></tr>
+                  <tr><td>Blessé grave</td><td class="mono" style="color:var(--red-light)">−30%</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- États de santé -->
+            <div class="ref-section">
+              <div class="ref-section-title">États de santé</div>
+              <table class="ref-table">
+                <thead><tr><th>État</th><th>PC</th><th>Malus</th></tr></thead>
+                <tbody>
+                  <tr><td style="color:#4a7c59">Intact</td><td class="mono">100%</td><td>—</td></tr>
+                  <tr><td style="color:#6aac79">Blessé léger</td><td class="mono">75–99%</td><td>−5%</td></tr>
+                  <tr><td style="color:#c8a22a">Blessé</td><td class="mono">50–74%</td><td>−15%</td></tr>
+                  <tr><td style="color:#c85a1a">Grave</td><td class="mono">25–49%</td><td>−30%</td></tr>
+                  <tr><td style="color:#8b1a1a">Critique</td><td class="mono">1–24%</td><td>−50%</td></tr>
+                  <tr><td style="color:#5a1a1a">Mourant</td><td class="mono">&lt;1</td><td>Incapacité</td></tr>
+                  <tr><td style="color:#4a3030">Mort</td><td class="mono">0</td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Moral -->
+            <div class="ref-section">
+              <div class="ref-section-title">Moral de groupe</div>
+              <table class="ref-table">
+                <thead><tr><th>Palier</th><th>Label</th><th>Effet</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">5</td><td style="color:#c8922a">Fanatique</td><td>+15%, immunité morale</td></tr>
+                  <tr><td class="mono">4</td><td style="color:#6aac79">Loyal</td><td>+5% jets de groupe</td></tr>
+                  <tr><td class="mono">3</td><td style="color:#c8a22a">Neutre</td><td>—</td></tr>
+                  <tr><td class="mono">2</td><td style="color:#c85a1a">Méfiant</td><td>−20%, risque désertion</td></tr>
+                  <tr><td class="mono">1</td><td style="color:#8b1a1a">Mutin</td><td>Désobéissance possible</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Réputations -->
+            <div class="ref-section">
+              <div class="ref-section-title">Réputations</div>
+              <table class="ref-table">
+                <thead><tr><th>Score</th><th>Statut</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">≤ −50</td><td style="color:#8b1a1a">Ennemi</td></tr>
+                  <tr><td class="mono">−49…−20</td><td style="color:#c85a1a">Hostile</td></tr>
+                  <tr><td class="mono">−19…+20</td><td style="color:#9a8a72">Neutre</td></tr>
+                  <tr><td class="mono">+21…+60</td><td style="color:#6aac79">Favorable</td></tr>
+                  <tr><td class="mono">&gt; +60</td><td style="color:#c8922a">Allié</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div><!-- /grid -->
+        </div><!-- /collapsible body -->
+      </section>
+
+    </div><!-- /room-col--main -->
+
+    <!-- ── Colonne latérale ── -->
+    <div class="room-col--side">
+
+      <!-- ══════════════════════════
+           ZONE D — PERSONNAGES
+      ══════════════════════════ -->
+      <section class="panel" aria-label="Personnages">
+        <h2 class="section-title">
+          <span class="section-title__icon">👤</span>
+          Personnages
+        </h2>
+
+        <div class="char-list" id="char-list">
+          <p class="text-muted" style="font-size:.85rem">Chargement…</p>
+        </div>
+
+        <!-- Ajouter un personnage -->
+        <div style="margin-top:.75rem">
+          <button class="collapsible__toggle" aria-expanded="false">
+            <span style="font-size:.9rem">+ Ajouter un personnage</span>
+            <span class="collapsible__icon">▼</span>
+          </button>
+          <div class="collapsible__body collapsible__body--closed">
+            <form id="add-char-form" class="add-char-form" autocomplete="off">
+              <div class="field">
+                <label for="char-name">Nom du personnage</label>
+                <input type="text" id="char-name" placeholder="Ex : Aelira Duskblade" required maxlength="50">
+              </div>
+              <div class="draw-form__row">
+                <div class="field">
+                  <label for="char-pc-max">PC max</label>
+                  <input type="number" id="char-pc-max" min="1" max="999" value="10" required>
+                </div>
+                <div class="field">
+                  <label for="char-player-name">Nom du joueur</label>
+                  <input type="text" id="char-player-name" placeholder="Facultatif" maxlength="40">
+                </div>
+              </div>
+              <button type="submit" class="btn btn--primary btn--full">Ajouter</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════
+           ZONE E — MORAL
+      ══════════════════════════ -->
+      <section class="morale-panel" aria-label="Moral de groupe">
+        <h2 class="section-title">
+          <span class="section-title__icon">⚔</span>
+          Moral de groupe
+        </h2>
+
+        <div class="morale-display">
+          <div class="morale-pips">
+            <div class="morale-pip morale-pip--active"></div>
+            <div class="morale-pip morale-pip--active"></div>
+            <div class="morale-pip morale-pip--active"></div>
+            <div class="morale-pip"></div>
+            <div class="morale-pip"></div>
+          </div>
+          <div class="morale-label-group">
+            <div class="morale-name" id="morale-name">Neutre</div>
+            <div class="morale-effect" id="morale-effect">Aucun modificateur</div>
+          </div>
+        </div>
+
+        <div class="morale-risk hidden" id="morale-risk"></div>
+
+        <div class="btn-group gm-only" style="margin-top:.75rem">
+          <button class="btn btn--ghost btn--sm" id="morale-minus">− Moral</button>
+          <button class="btn btn--ghost btn--sm" id="morale-plus">+ Moral</button>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════
+           ZONE F — RÉPUTATIONS
+      ══════════════════════════ -->
+      <section class="panel" aria-label="Réputations">
+        <button class="collapsible__toggle" aria-expanded="false">
+          <span>🏛 Réputations</span>
+          <span class="collapsible__icon">▼</span>
+        </button>
+        <div class="collapsible__body collapsible__body--closed">
+          <div style="padding-top:.75rem">
+            <div id="rep-container">
+              <p class="text-muted" style="font-size:.85rem">Chargement…</p>
+            </div>
+
+            <!-- Ajouter une faction (MJ only) -->
+            <div class="gm-only" style="margin-top:1rem">
+              <div class="divider"></div>
+              <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.5rem">Ajouter une faction à un personnage :</p>
+              <form id="add-faction-form" autocomplete="off" style="display:flex;flex-direction:column;gap:.5rem">
+                <select id="faction-char-select" class="player-char-select">
+                  <option value="">— Personnage —</option>
+                </select>
+                <input type="text" id="faction-name" placeholder="Nom de la faction" maxlength="50">
+                <button type="submit" class="btn btn--ghost btn--sm">Ajouter la faction</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /room-col--side -->
+
+  </main><!-- /room-main -->
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="js/main-room.js"></script>
+</body>
+</html>

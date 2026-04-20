@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Sac -->
+  <ellipse cx="32" cy="42" rx="22" ry="18" fill="#3a2a1a" stroke="#c8922a" stroke-width="2"/>
+  <path d="M14 38 Q10 42 12 50 Q16 60 32 60 Q48 60 52 50 Q54 42 50 38" fill="#2a1a0e" stroke="#c8922a" stroke-width="1.5"/>
+  <!-- Lien du sac -->
+  <path d="M24 24 Q28 18 32 20 Q36 18 40 24 Q38 30 32 32 Q26 30 24 24Z" fill="#5a3a1a" stroke="#c8922a" stroke-width="1.5"/>
+  <!-- Jeton rouge -->
+  <circle cx="32" cy="43" r="7" fill="#8b1a1a" opacity="0.9"/>
+  <circle cx="32" cy="43" r="5" fill="#a02020" opacity="0.7"/>
+  <!-- Éclat -->
+  <circle cx="29" cy="40" r="1.5" fill="#e05050" opacity="0.6"/>
+</svg>
